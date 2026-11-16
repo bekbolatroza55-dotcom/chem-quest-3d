@@ -1,349 +1,324 @@
 
-<!DOCTYPE html>
-<html lang="kk">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>CHEM QUEST 3D — Химия музейі</title>
-<style>
-*{box-sizing:border-box}
-body{margin:0;background:#071326;color:white;font-family:Arial,sans-serif;overflow:hidden}
-canvas{display:block;width:100vw;height:100vh}
-button{cursor:pointer;background:linear-gradient(110deg,#00b7da,#6850de);color:white;border:0;border-radius:10px;padding:12px 17px;font-weight:bold}
-button:disabled{opacity:.4}
-.modal{position:fixed;inset:0;background:#020816dd;display:flex;align-items:center;justify-content:center;z-index:10;padding:15px}
-.panel{background:linear-gradient(145deg,#17345b,#08162d);border:2px solid #43cde9;border-radius:20px;padding:25px;width:min(650px,100%);max-height:92vh;overflow:auto;box-shadow:0 0 45px #00bfff44}
-h1,h2{color:#70eaff}
-input{display:block;width:100%;padding:13px;margin:10px 0;background:#09192e;border:1px solid #55cde9;color:white;border-radius:8px;font-size:16px}
-.hidden{display:none!important}
-#hud{position:fixed;top:12px;left:12px;background:#07182de8;border:1px solid #47c6e9;border-radius:12px;padding:12px;z-index:3;max-width:300px}
-#hud small{display:block;color:#b6e4f5;margin-top:5px}
-#controls{position:fixed;bottom:12px;left:12px;z-index:4;display:flex;gap:5px;align-items:end}
-#controls button{padding:13px;min-width:43px;background:#17456c}
-#hint{position:fixed;bottom:15px;right:12px;background:#07182de8;padding:12px;border-radius:12px;max-width:55%;font-size:14px;z-index:3}
-#answers{display:grid;gap:9px;margin:15px 0}
-#answers button{text-align:left;background:#193c62}
-#answers button.good{background:#13754e}
-#answers button.bad{background:#8d3642}
-#feedback{margin:12px 0;line-height:1.5}
-#certificate{background:white;color:#142d4a;padding:28px;border:8px double #b89339;text-align:center;border-radius:8px}
-#certificate h1{color:#a07823}
-#certificate p{font-size:17px;line-height:1.7}
-@media(max-width:600px){#hud{font-size:12px;max-width:220px}#hint{font-size:11px}#controls button{padding:10px;min-width:35px}}
-@media print{
-body *{visibility:hidden!important}
-#certificate,#certificate *{visibility:visible!important}
-#certificate{position:absolute;left:0;top:0;width:100%;border:8px double #b89339}
-}
-</style>
-</head>
-<body>
-<canvas id="view"></canvas>
-<div id="hud">
-<strong>⚗ CHEM QUEST 3D</strong>
-<div id="status">1-зал · Жеңіл деңгей</div>
-<small id="progress">0 / 10 тапсырма</small>
-<small id="score">⭐ 0 ұпай</small>
-<button id="certBtn">Сертификат</button>
-</div>
-<div id="hint">W A S D — жүру · ← → — бұрылу · E — экспонатты ашу</div>
-<div id="controls">
-<div>
-<button data-key="arrowup">▲</button><br>
-<button data-key="arrowleft">◀</button>
-<button data-key="arrowdown">▼</button>
-<button data-key="arrowright">▶</button>
-</div>
-<button id="action">Ашу / Есіктен өту</button>
-</div>
-
-<div class="modal" id="welcome">
-<div class="panel">
-<h1>⚗ CHEM QUEST 3D</h1>
-<h2>Үш залды виртуалды химия музейі</h2>
-<p>1-зал: 10 жеңіл сұрақ. 2-зал: 10 орташа сұрақ. 3-зал: 10 күрделі сұрақ.</p>
-<p>Әр залдың барлық сұрағына жауап бергенде келесі есік ашылады. Дұрыс жауап — 20 ұпай, қате жауап — 0 ұпай.</p>
-<label>Оқушының аты-жөні</label>
-<input id="student" placeholder="Аты-жөніңіз">
-<label>Мектебі</label>
-<input id="school" value="Әл-Фараби атындағы №12 жалпы білім беретін мектеп">
-<label>Мұғалімнің аты-жөні</label>
-<input id="teacher" value="Бекболат Роза Әбдіқұлқызы">
-<button id="start">Музейге кіру →</button>
-</div>
-</div>
-
-<div class="modal hidden" id="quiz">
-<div class="panel">
-<h2 id="qtitle"></h2>
-<p id="question"></p>
-<div id="answers"></div>
-<div id="feedback"></div>
-<button id="closeQuiz">Музейге оралу</button>
-</div>
-</div>
-
-<div class="modal hidden" id="certificateModal">
-<div class="panel">
-<div id="certificate">
-<h2>⚗ CHEM QUEST 3D</h2>
-<h1>СЕРТИФИКАТ</h1>
-<p>Виртуалды химия музейіне қатысқаны үшін</p>
-<h2 id="certName"></h2>
-<p id="certSchool"></p>
-<p id="certTeacher"></p>
-<p id="certResult"></p>
-<p id="certScore"></p>
-<p>Химия әлемін зерттегеніңіз үшін алғыс білдіреміз!</p>
-<p><small>CHEM QUEST 3D · 9-сынып</small></p>
-</div>
-<p><button id="print">Басып шығару / PDF</button>
-<button id="closeCert">Жабу</button></p>
-<button id="downloadResult">Нәтижені жүктеу</button>
-</div>
-</div>
-
 <script>
-const $=id=>document.getElementById(id);
-const data=[
-[
-["Қай зат электролит?","Қант","NaCl","Спирт","Глюкоза",1],
-["Судың формуласы қандай?","H₂O","CO₂","HCl","NaOH",0],
-["Қышқыл құрамындағы катион?","Na⁺","H⁺","Cl⁻","OH⁻",1],
-["Сілтінің мысалы?","HCl","NaOH","NaCl","CO₂",1],
-["Ас тұзының формуласы?","KOH","H₂SO₄","NaCl","CaO",2],
-["Оттектің таңбасы?","O","H","N","S",0],
-["Металға жататын элемент?","Күкірт","Хлор","Мыс","Оттек",2],
-["Қышқыл ортада pH мәні қандай?","7-ден төмен","7","7-ден жоғары","14",0],
-["NaCl ерітіндісіндегі анион?","Na⁺","H⁺","Cl⁻","K⁺",2],
-["Жездің құрамы?","Fe және C","Cu және Zn","Cu және Sn","Al және Mg",1]
-],
-[
-["BaCl₂ + Na₂SO₄ реакциясында тұнба?","BaSO₄","NaCl","BaO","NaOH",0],
-["H₂SO₄ толық диссоциацияланғанда H⁺ саны?","1","2","3","4",1],
-["Zn + CuSO₄ реакциясында тотықсызданатын бөлшек?","Zn","SO₄²⁻","Cu²⁺","Cu",2],
-["HCl + NaOH реакциясының өнімдері?","NaCl және H₂O","H₂ және Cl₂","Na және H₂","Na₂O және HCl",0],
-["Күшті электролитті таңдаңыз.","Қант","Этанол","HCl","Глюкоза",2],
-["AgNO₃ + NaCl реакциясындағы тұнба?","AgCl","NaNO₃","Ag₂O","Na₂O",0],
-["Қайсысы бейэлектролит?","KOH","HNO₃","NaCl","Сахароза",3],
-["CaCO₃ + 2HCl реакциясында бөлінетін газ?","O₂","CO₂","N₂","H₂",1],
-["CuO + 2HCl реакциясында түзілетін тұз?","CuCl₂","CuSO₄","NaCl","Cu(NO₃)₂",0],
-["Fe + CuSO₄ реакциясында түзілетін тұз?","FeSO₄","FeCl₃","Fe₂O₃","CuCl₂",0]
-],
-[
-["0,5 моль NaCl массасы қанша? (M=58,5)","58,5 г","29,25 г","117 г","11,7 г",1],
-["2 моль H₂O молекула саны?","6,02×10²³","3,01×10²³","1,204×10²⁴","12,04×10²⁴",2],
-["200 г 10% NaCl ерітіндісіндегі тұз массасы?","10 г","20 г","30 г","40 г",1],
-["0,2 моль H₂SO₄ массасы? (M=98)","9,8 г","19,6 г","29,4 г","49 г",1],
-["0,5 моль CO₂ массасы? (M=44)","11 г","22 г","44 г","88 г",1],
-["100 г 20% ерітіндіге 100 г су қосса, үлесі?","5%","10%","20%","40%",1],
-["4 г H₂ неше моль? (M=2)","1","2","3","4",1],
-["5,6 л H₂ (қ.ж.) зат мөлшері?","0,25 моль","0,5 моль","1 моль","2 моль",0],
-["0,1 моль NaOH массасы? (M=40)","0,4 г","4 г","40 г","400 г",1],
-["11,2 л O₂ (қ.ж.) массасы? (M=32)","8 г","16 г","32 г","64 г",1]
-]
-];
-const titles=["Атомдар әлемі","Химиялық зертхана","Реакциялар ғаламы"];
-const themes=[
-{wall:"#174d80",floor:"#18365a",accent:"#65e9ff",symbol:"⚛"},
-{wall:"#175a4c",floor:"#173d37",accent:"#6bffc4",symbol:"⚗"},
-{wall:"#55316e",floor:"#382449",accent:"#ffca67",symbol:"✦"}
-];
-let room=0,px=0,pz=1,angle=0,started=false;
-let correct=0,answered=0,student="",school="",teacher="";
-const done=Array.from({length:3},()=>new Set());
-const canvas=$("view"),ctx=canvas.getContext("2d");
-const keys={};
-function resize(){canvas.width=innerWidth*devicePixelRatio;canvas.height=innerHeight*devicePixelRatio}
-addEventListener("resize",resize);resize();
-const objects=Array.from({length:10},(_,i)=>({
-x:(i%2===0?-3.2:3.2),
-z:-2-Math.floor(i/2)*4.2,
-i
-}));
-function project(x,y,z){
-let dx=x-px,dz=z-pz;
-let forward=-dx*Math.sin(angle)-dz*Math.cos(angle);
-let side=dx*Math.cos(angle)-dz*Math.sin(angle);
-if(forward<=.15)return null;
-let scale=canvas.height*.78/forward;
-return {x:canvas.width/2+side*scale,y:canvas.height*.53-y*scale,s:scale,depth:forward}
-}
-function rect3(x,y,z,w,h,color){
-let p=project(x,y,z);if(!p)return;
-ctx.fillStyle=color;
-ctx.fillRect(p.x-w*p.s/2,p.y-h*p.s,w*p.s,h*p.s)
-}
-function draw(){
-const W=canvas.width,H=canvas.height,t=themes[room];
-let grad=ctx.createLinearGradient(0,0,0,H);
-grad.addColorStop(0,"#061326");grad.addColorStop(.52,t.wall);grad.addColorStop(1,t.floor);
-ctx.fillStyle=grad;ctx.fillRect(0,0,W,H);
-ctx.fillStyle=t.floor;ctx.fillRect(0,H*.54,W,H*.46);
-for(let z=3;z>=-25;z-=2){
-for(let x of [-5,5]){
-rect3(x,0,z,.16,5,t.accent);
-}
-rect3(0,-.02,z,8,.035,"#52708b");
-}
-for(let x of [-5,5]){
-for(let z=-24;z<5;z+=5){
-rect3(x,2,z,.35,3.5,t.wall);
-}
-}
-let visible=[];
-objects.forEach(o=>{
-let p=project(o.x,1.3,o.z);
-if(p)visible.push({o,p});
-});
-visible.sort((a,b)=>b.p.depth-a.p.depth);
-visible.forEach(({o,p})=>{
-let completed=done[room].has(o.i);
-let s=Math.min(p.s,Math.max(W,H)*.6);
-ctx.fillStyle="#07182d";
-ctx.fillRect(p.x-s*.57,p.y+s*.22,s*1.14,s*.4);
-ctx.fillStyle=completed?"#477f70":t.accent;
-ctx.fillRect(p.x-s*.47,p.y+s*.18,s*.94,s*.09);
-ctx.beginPath();
-ctx.arc(p.x,p.y-s*.17,s*.33,0,Math.PI*2);
-ctx.fillStyle=completed?"#418f74":t.accent;
-ctx.shadowColor=t.accent;ctx.shadowBlur=20;
-ctx.fill();ctx.shadowBlur=0;
-ctx.fillStyle="#081629";
-ctx.font=`bold ${Math.max(12,Math.min(48,s*.35))}px Arial`;
-ctx.textAlign="center";
-ctx.fillText(completed?"✓":String(o.i+1),p.x,p.y-s*.06);
-});
-let door=project(0,1.4,-24.7);
-if(door){
-let open=done[room].size===10;
-ctx.fillStyle=open?"#39cda0":"#8a4058";
-ctx.fillRect(door.x-door.s,door.y-door.s*1.6,door.s*2,door.s*3.2);
-ctx.fillStyle="#071426";
-ctx.font=`bold ${Math.max(12,door.s*.32)}px Arial`;
-ctx.textAlign="center";
-ctx.fillText(open?(room===2?"АЯҚТАУ":"АШЫҚ"):"ҚҰЛЫПТАУЛЫ",door.x,door.y);
-}
-ctx.textAlign="center";
-ctx.fillStyle="#ffffffaa";
-ctx.font=`${Math.max(18,W*.025)}px Arial`;
-ctx.fillText("+",W/2,H/2);
-ctx.fillStyle=t.accent;
-ctx.font=`bold ${Math.max(19,Math.min(38,W*.038))}px Arial`;
-ctx.fillText(t.symbol+" "+titles[room],W/2,H*.13);
-}
-function nearest(){
-let best=null,dist=Infinity;
-for(const o of objects){
-let d=Math.hypot(px-o.x,pz-o.z);
-if(d<dist){dist=d;best=o}
-}
-return dist<3.3?best:null
-}
-function update(){
-$("status").textContent=(room+1)+"-зал · "+titles[room];
-$("progress").textContent=done[room].size+" / 10 тапсырма";
-$("score").textContent="⭐ "+correct*20+" / 600 ұпай";
-}
-function interact(){
-if(!started||!$("quiz").classList.contains("hidden"))return;
-if(Math.hypot(px,pz+24.7)<3.5){
-if(done[room].size<10){
-alert("Келесі залға өту үшін осы залдағы 10 сұраққа жауап беріңіз.");
-return;
-}
-if(room===2){showCertificate();return}
-room++;px=0;pz=1;angle=0;update();return;
-}
-let o=nearest();
-if(!o){$("hint").textContent="Экспонатқа немесе есікке жақындаңыз.";return}
-showQuestion(o.i);
-}
-function showQuestion(i){
-const q=data[room][i],already=done[room].has(i);
-$("qtitle").textContent=(room+1)+"-зал · "+(i+1)+"-тапсырма";
-$("question").textContent=q[0];
-$("answers").replaceChildren();
-$("feedback").textContent=already?"Бұл сұраққа жауап берілген.":"";
-for(let k=0;k<4;k++){
-const b=document.createElement("button");
-b.textContent=["А","Ә","Б","В"][k]+") "+q[k+1];
-b.disabled=already;
-b.onclick=()=>{
-if(done[room].has(i))return;
-done[room].add(i);answered++;
-if(k===q[5])correct++;
-b.classList.add(k===q[5]?"good":"bad");
-$("feedback").textContent=k===q[5]?"✅ Дұрыс! +20 ұпай":"❌ Қате жауап. +0 ұпай";
-for(const child of $("answers").children)child.disabled=true;
-update();
-if(done[room].size===10){
-$("feedback").textContent+=". Зал аяқталды! Енді есікке барыңыз.";
-}
-};
-$("answers").appendChild(b);
-}
-$("quiz").classList.remove("hidden");
-}
-function showCertificate(){
-$("certName").textContent=student;
-$("certSchool").textContent="Мектебі: "+school;
-$("certTeacher").textContent="Мұғалімі: "+teacher;
-$("certResult").textContent="Жауап берген сұрақтар: "+answered+" / 30. Дұрыс жауаптар: "+correct;
-$("certScore").textContent="Жинаған ұпайы: "+(correct*20)+" / 600";
-$("certificateModal").classList.remove("hidden");
-}
-$("start").onclick=()=>{
-student=$("student").value.trim()||"Оқушы";
-school=$("school").value.trim()||"Көрсетілмеген";
-teacher=$("teacher").value.trim()||"Көрсетілмеген";
-started=true;
-$("welcome").classList.add("hidden");
-update();
-};
-$("closeQuiz").onclick=()=>$("quiz").classList.add("hidden");
-$("certBtn").onclick=showCertificate;
-$("closeCert").onclick=()=>$("certificateModal").classList.add("hidden");
-$("print").onclick=()=>window.print();
-$("downloadResult").onclick=()=>{
-const result={оқушы:student,мектеп:school,мұғалім:teacher,жауап_берген:answered,дұрыс:correct,ұпай:correct*20};
-const blob=new Blob([JSON.stringify(result,null,2)],{type:"application/json;charset=utf-8"});
-const url=URL.createObjectURL(blob);
-const a=document.createElement("a");
-a.href=url;a.download="chem-quest-result.json";a.click();
-setTimeout(()=>URL.revokeObjectURL(url),1000);
-};
-$("action").onclick=interact;
-addEventListener("keydown",e=>{
-if(e.target.tagName==="INPUT")return;
-keys[e.key.toLowerCase()]=true;
-if(e.key.toLowerCase()==="e")interact();
-});
-addEventListener("keyup",e=>keys[e.key.toLowerCase()]=false);
-document.querySelectorAll("[data-key]").forEach(b=>{
-let key=b.dataset.key;
-b.onpointerdown=e=>{e.preventDefault();keys[key]=true;b.setPointerCapture(e.pointerId)};
-b.onpointerup=()=>keys[key]=false;
-b.onpointercancel=()=>keys[key]=false;
-});
-let last=performance.now();
-function frame(now){
-let dt=Math.min((now-last)/1000,.05);last=now;
-if(started&&$("quiz").classList.contains("hidden")&&$("certificateModal").classList.contains("hidden")){
-if(keys.arrowleft||keys.a)angle+=dt*1.8;
-if(keys.arrowright||keys.d)angle-=dt*1.8;
-let move=Number(!!(keys.arrowup||keys.w))-Number(!!(keys.arrowdown||keys.s));
-px-=Math.sin(angle)*move*dt*3.8;
-pz-=Math.cos(angle)*move*dt*3.8;
-px=Math.max(-4,Math.min(4,px));
-pz=Math.max(-24,Math.min(3,pz));
-let o=nearest();
-$("hint").textContent=o?"Экспонат "+(o.i+1)+": E немесе «Ашу» басыңыз":"Экспонаттарға жақындаңыз. Есік залдың соңында.";
-}
-draw();requestAnimationFrame(frame);
-}
-requestAnimationFrame(frame);
+/* CHEM QUEST 3D — ҒАЖАЙЫП ХИМИЯ ӘЛЕМІ */
+(function () {
+  const TAU = Math.PI * 2;
+  const palette = [
+    {wall:"#092d61",floor:"#071b39",light:"#47e8ff",second:"#9b7aff"},
+    {wall:"#073e38",floor:"#082a28",light:"#4bffba",second:"#e6ff78"},
+    {wall:"#371454",floor:"#200e38",light:"#ffcf62",second:"#dc78ff"}
+  ];
+
+  function line(x1,y1,x2,y2,color,width=2) {
+    ctx.beginPath();
+    ctx.moveTo(x1,y1);
+    ctx.lineTo(x2,y2);
+    ctx.strokeStyle=color;
+    ctx.lineWidth=width;
+    ctx.stroke();
+  }
+
+  function circle(x,y,r,color,glow=0) {
+    ctx.save();
+    ctx.shadowColor=color;
+    ctx.shadowBlur=glow;
+    ctx.fillStyle=color;
+    ctx.beginPath();
+    ctx.arc(x,y,Math.max(0.1,r),0,TAU);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function polygon(points,color) {
+    if(points.some(p=>!p))return;
+    ctx.beginPath();
+    ctx.moveTo(points[0].x,points[0].y);
+    for(let i=1;i<points.length;i++)
+      ctx.lineTo(points[i].x,points[i].y);
+    ctx.closePath();
+    ctx.fillStyle=color;
+    ctx.fill();
+  }
+
+  function pLine(a,b,color,width=2) {
+    if(a&&b)line(a.x,a.y,b.x,b.y,color,width);
+  }
+
+  function glowText(text,x,y,size,color) {
+    ctx.save();
+    ctx.textAlign="center";
+    ctx.font="bold "+Math.max(10,size)+"px Arial";
+    ctx.shadowColor=color;
+    ctx.shadowBlur=18;
+    ctx.fillStyle=color;
+    ctx.fillText(text,x,y);
+    ctx.restore();
+  }
+
+  function atom(x,y,s,time,color) {
+    ctx.save();
+    ctx.translate(x,y);
+    ctx.strokeStyle=color;
+    ctx.lineWidth=Math.max(1.5,s*.035);
+    ctx.shadowColor=color;
+    ctx.shadowBlur=16;
+    for(let k=0;k<3;k++) {
+      ctx.save();
+      ctx.rotate(k*Math.PI/3+time*.13);
+      ctx.scale(1,.36);
+      ctx.beginPath();
+      ctx.arc(0,0,s,0,TAU);
+      ctx.stroke();
+      ctx.restore();
+    }
+    circle(0,0,s*.20,"#fff1ac",16);
+    for(let k=0;k<3;k++) {
+      let a=time*(.6+k*.16)+k*TAU/3;
+      let xx=Math.cos(a)*s;
+      let yy=Math.sin(a)*s*.36;
+      let rot=k*Math.PI/3+time*.13;
+      let ex=xx*Math.cos(rot)-yy*Math.sin(rot);
+      let ey=xx*Math.sin(rot)+yy*Math.cos(rot);
+      circle(ex,ey,s*.085,"#ffffff",9);
+    }
+    ctx.restore();
+  }
+
+  function flask(x,y,s,time,color) {
+    ctx.save();
+    ctx.translate(x,y);
+    ctx.scale(s,s);
+    ctx.shadowColor=color;
+    ctx.shadowBlur=12;
+    ctx.fillStyle="#c4ffff18";
+    ctx.strokeStyle="#c9faff";
+    ctx.lineWidth=2;
+    ctx.beginPath();
+    ctx.moveTo(-8,-36);
+    ctx.lineTo(8,-36);
+    ctx.lineTo(8,-12);
+    ctx.lineTo(26,22);
+    ctx.quadraticCurveTo(30,35,15,36);
+    ctx.lineTo(-15,36);
+    ctx.quadraticCurveTo(-30,35,-26,22);
+    ctx.lineTo(-8,-12);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle=color;
+    ctx.globalAlpha=.65;
+    ctx.beginPath();
+    ctx.moveTo(-21,16);
+    ctx.quadraticCurveTo(0,11+Math.sin(time*2)*3,21,16);
+    ctx.lineTo(25,28);
+    ctx.quadraticCurveTo(23,33,13,33);
+    ctx.lineTo(-13,33);
+    ctx.quadraticCurveTo(-23,33,-25,28);
+    ctx.closePath();
+    ctx.fill();
+    ctx.globalAlpha=1;
+
+    for(let i=0;i<5;i++){
+      let yy=25-((time*15+i*12)%55);
+      let xx=Math.sin(i*3+time)*11;
+      circle(xx,yy,2+i%2,"#dfffff",4);
+    }
+    ctx.restore();
+  }
+
+  function molecule(x,y,s,time,color) {
+    const nodes=[
+      [-.8,0,0],[-.25,-.65,1],[.55,-.35,2],
+      [.9,.45,3],[0,.8,4],[-.1,.05,5]
+    ];
+    const edges=[[0,1],[1,2],[2,3],[3,4],[4,0],[1,5],[5,3]];
+    let pos=nodes.map(n=>{
+      let a=time*.24;
+      let xx=n[0]*Math.cos(a)-n[1]*Math.sin(a);
+      let yy=n[0]*Math.sin(a)+n[1]*Math.cos(a);
+      return [x+xx*s,y+yy*s];
+    });
+    for(const [a,b] of edges)
+      line(pos[a][0],pos[a][1],pos[b][0],pos[b][1],
+        "#b9b3ff",Math.max(2,s*.09));
+    pos.forEach((p,i)=>{
+      let c=i%3===0?"#ff7799":i%3===1?color:"#9eeaff";
+      circle(p[0],p[1],s*(i===5?.23:.18),c,16);
+      circle(p[0]-s*.04,p[1]-s*.05,s*.05,"#ffffff",3);
+    });
+  }
+
+  function displayExhibit(o,time,t) {
+    let p=project(o.x,1.25,o.z);
+    if(!p)return;
+    let s=Math.min(p.s,canvas.height*.85);
+    if(s<2)return;
+
+    let complete=done[room].has(o.i);
+    let base=project(o.x,0,o.z);
+
+    if(base) {
+      ctx.save();
+      ctx.shadowColor=t.light;
+      ctx.shadowBlur=15;
+      ctx.fillStyle="#071524";
+      ctx.beginPath();
+      ctx.ellipse(base.x,base.y,s*.75,s*.22,0,0,TAU);
+      ctx.fill();
+      ctx.strokeStyle=complete?"#60cfa3":t.light;
+      ctx.lineWidth=Math.max(1,s*.045);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    ctx.fillStyle="#10253b";
+    ctx.fillRect(p.x-s*.57,p.y+s*.31,s*1.14,s*.39);
+    ctx.fillStyle=complete?"#6ecda5":t.light;
+    ctx.fillRect(p.x-s*.55,p.y+s*.29,s*1.10,s*.055);
+
+    let size=Math.max(8,Math.min(s*.42,canvas.height*.26));
+    if(room===0)atom(p.x,p.y-s*.1,size,time+o.i,t.light);
+    if(room===1)flask(p.x,p.y-s*.05,
+      Math.max(.15,Math.min(s/90,5)),time+o.i*.3,
+      o.i%2?t.second:t.light);
+    if(room===2)molecule(p.x,p.y-s*.1,size,time+o.i,t.light);
+
+    glowText(complete?"✓":String(o.i+1),
+      p.x,p.y+s*.59,Math.min(32,Math.max(11,s*.20)),
+      complete?"#92ffd0":"#ffffff");
+  }
+
+  function architecture(t,time) {
+    const W=canvas.width,H=canvas.height;
+    const bg=ctx.createLinearGradient(0,0,0,H);
+    bg.addColorStop(0,"#020915");
+    bg.addColorStop(.53,t.wall);
+    bg.addColorStop(1,t.floor);
+    ctx.fillStyle=bg;
+    ctx.fillRect(0,0,W,H);
+
+    // Жұлдыздар мен ауадағы жарық бөлшектері
+    for(let i=0;i<65;i++){
+      let x=((i*7919+1234)%997)/997*W;
+      let y=((i*3571+567)%991)/991*H*.72;
+      let r=(i%3+1)*devicePixelRatio*.7;
+      circle(x+Math.sin(time*.3+i)*3,y+Math.cos(time*.5+i)*4,
+        r,i%2?t.light:"#ffffff",4);
+    }
+
+    // Еденнің перспективалық торы
+    for(let x=-4;x<=4;x+=1){
+      pLine(project(x,-.05,3),project(x,-.05,-26),
+        "#58ddff55",Math.max(1,W*.0013));
+    }
+    for(let z=3;z>=-26;z-=2){
+      pLine(project(-4,-.05,z),project(4,-.05,z),
+        "#a7faff33",Math.max(1,W*.001));
+    }
+
+    // Қабырғалар, жарық жолақтары, төбе
+    for(let z=3;z>=-25;z-=3){
+      for(const x of [-4.3,4.3]){
+        pLine(project(x,0,z),project(x,3.4,z),
+          t.light,Math.max(1,W*.003));
+        pLine(project(x,3.4,z),project(x,3.4,z-2.7),
+          t.second,Math.max(1,W*.002));
+      }
+      pLine(project(-4.3,3.4,z),project(4.3,3.4,z),
+        t.light+"77",Math.max(1,W*.002));
+    }
+
+    // Екі жақтағы қабырғадағы сәндік панельдер
+    for(let z=1;z>=-24;z-=5){
+      for(const x of [-4.15,4.15]){
+        let a=project(x,1.9,z);
+        if(!a)continue;
+        circle(a.x,a.y,Math.min(a.s*.19,35),t.second,18);
+        glowText(room===0?"⚛":room===1?"⚗":"✦",
+          a.x,a.y+5,Math.min(28,a.s*.26),t.light);
+      }
+    }
+  }
+
+  function door(t,time) {
+    const p=project(0,1.5,-25.1);
+    if(!p)return;
+    const s=p.s;
+    const open=done[room].size===10;
+    const color=open?"#4bffbf":"#ff668f";
+
+    ctx.save();
+    ctx.shadowColor=color;
+    ctx.shadowBlur=24;
+    ctx.fillStyle="#08121f";
+    ctx.fillRect(p.x-s*.9,p.y-s*1.45,s*1.8,s*2.9);
+    ctx.strokeStyle=color;
+    ctx.lineWidth=Math.max(2,s*.13);
+    ctx.strokeRect(p.x-s*.9,p.y-s*1.45,s*1.8,s*2.9);
+    ctx.restore();
+
+    if(open) {
+      const g=ctx.createRadialGradient(p.x,p.y,1,p.x,p.y,s*1.2);
+      g.addColorStop(0,"#caffed");
+      g.addColorStop(.35,"#43eab8");
+      g.addColorStop(1,"#084d52");
+      ctx.fillStyle=g;
+      ctx.fillRect(p.x-s*.75,p.y-s*1.30,s*1.5,s*2.6);
+    }
+    glowText(open?(room===2?"МӘРЕ":"КЕЛЕСІ ЗАЛ"):"🔒",
+      p.x,p.y,Math.max(11,s*.26),open?"#ffffff":"#ffb5c9");
+  }
+
+  // Бұрынғы draw() функциясының орнына жаңа 3D көрініс
+  draw=function(){
+    const t=palette[room];
+    const time=performance.now()/1000;
+    const W=canvas.width,H=canvas.height;
+
+    architecture(t,time);
+
+    // Залдың ортасында ілінген алып химиялық модель
+    let centerpiece=project(0,2.7,-12);
+    if(centerpiece){
+      let s=Math.min(centerpiece.s*.6,H*.17);
+      if(room===0)atom(centerpiece.x,centerpiece.y,
+        s,time*.5,t.second);
+      if(room===1)flask(centerpiece.x,centerpiece.y,
+        Math.min(2,s/42),time,t.second);
+      if(room===2)molecule(centerpiece.x,centerpiece.y,
+        s,time*.6,t.second);
+    }
+
+    // 10 интерактивті экспонат
+    let sorted=objects.map(o=>({
+      o,p:project(o.x,1.25,o.z)
+    })).filter(v=>v.p).sort((a,b)=>b.p.depth-a.p.depth);
+
+    sorted.forEach(v=>displayExhibit(v.o,time,t));
+    door(t,time);
+
+    // Зал атауы
+    glowText(
+      ["⚛ АТОМДАР ӘЛЕМІ",
+       "⚗ ХИМИЯЛЫҚ ЗЕРТХАНА",
+       "✦ РЕАКЦИЯЛАР ҒАЛАМЫ"][room],
+      W/2,H*.14,Math.min(34,Math.max(17,W*.035)),t.light
+    );
+
+    // Нысана
+    line(W/2-9,H/2,W/2+9,H/2,"#ffffffaa",2);
+    line(W/2,H/2-9,W/2,H/2+9,"#ffffffaa",2);
+
+    // Төменгі безендіру
+    ctx.fillStyle=t.light+"99";
+    ctx.fillRect(W*.15,H*.955,W*.7,Math.max(2,H*.003));
+  };
+
+  console.log("CHEM QUEST 3D: химиялық 3D дизайн қосылды");
+})();
 </script>
+
 </body>
 </html>
 
