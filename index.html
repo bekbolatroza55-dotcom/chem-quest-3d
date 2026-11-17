@@ -4,362 +4,561 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>CHEM PASSWORD 3.0</title>
+<title>CHEM PASSWORD 3.0 — Виртуалды музей</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;font-family:Arial,sans-serif;background:#061426;color:white}
+body{margin:0;background:#030b18;color:#eafaff;font-family:Arial,sans-serif}
 button,input{font:inherit}
-button{cursor:pointer;border:0;border-radius:12px;padding:13px 20px;background:#20b9f4;color:#001b30;font-weight:bold}
-button:hover{filter:brightness(1.15)}
-input{padding:13px;border:1px solid #44bce5;border-radius:10px;background:#092c45;color:white;width:100%}
-.panel{background:#09233b;border:1px solid #2879a4;border-radius:20px;padding:25px;max-width:850px;margin:25px auto}
-h1,h2{color:#8defff}
-p{line-height:1.6}
-#intro{text-align:center;max-width:900px;margin:25px auto}
-.hero{height:230px;border-radius:20px;background:linear-gradient(90deg,#ff641f,#182c67 48%,#56e14b);display:flex;align-items:center;justify-content:space-around;box-shadow:inset 0 0 80px #000}
-.hero span{font-size:75px;text-shadow:0 0 25px #fff}
-#museum,#task,#certificate{display:none}
-#museum{max-width:1100px;margin:auto}
-#scene{height:440px;position:relative;overflow:hidden;perspective:650px;background:linear-gradient(#04091a,#142e50 58%,#111a25 59%,#02060e);border:2px solid #36b9ed;border-radius:20px}
-#world{position:absolute;inset:0;transform-style:preserve-3d;transition:transform .35s}
-.floor{position:absolute;width:120%;height:70%;left:-10%;bottom:-30%;transform:rotateX(65deg);background:repeating-linear-gradient(90deg,transparent 0 95px,#2d7190 97px),repeating-linear-gradient(0deg,#091827 0 70px,#20506b 72px)}
-.doors{position:absolute;top:17%;left:5%;width:90%;display:flex;justify-content:space-around;gap:15px}
-.door{height:255px;width:28%;display:flex;flex-direction:column;justify-content:center;align-items:center;border:9px ridge #a2c5d3;border-radius:70px 70px 8px 8px;background:linear-gradient(90deg,#101824,#17344e,#101824);box-shadow:0 0 28px currentColor;transition:.3s;cursor:pointer}
-.door strong{font-size:clamp(17px,3vw,30px)}
-.door small{margin-top:12px;text-align:center}
-.start{color:#ffb15a}
-.pro{color:#56d6ff}
-.expert{color:#8cff84}
-.locked{opacity:.45}
-.controls{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:14px}
-.controls button{min-width:55px}
-#status{text-align:center;color:#bcefff}
-.question{background:#0e3450;border-radius:14px;padding:18px;margin:15px 0}
-.question h3{color:#a6edff}
-.options{display:grid;gap:8px;margin-top:12px}
-.options button{text-align:left;background:#184b6a;color:white}
-.options button.selected{background:#36bbf0;color:#00182a}
-.good{color:#81ff9e}
-.bad{color:#ffb4b4}
-.hidden{display:none!important}
-#certificate{background:#fff9e6;color:#12304b;text-align:center;border:12px double #d6ac42}
-#certificate h1{color:#b58b1d;font-size:38px}
-#certificate h2{color:#12304b}
-#certificate p{color:#12304b}
-@media(max-width:600px){.panel{margin:10px;padding:15px}.hero{height:150px}.hero span{font-size:48px}#scene{height:300px}.door{height:170px;border-width:5px}.door small{font-size:10px}}
-@media print{body{background:white}#intro,#museum,#task{display:none!important}#certificate{display:block!important;margin:0;max-width:none;min-height:90vh}}
+button{border:1px solid #4fd9ff;background:#0c5178;color:white;border-radius:10px;padding:12px 17px;cursor:pointer}
+button:hover{background:#1684b4}
+button:disabled{opacity:.4;cursor:not-allowed}
+input{width:100%;padding:13px;background:#061d31;border:1px solid #52cfff;border-radius:9px;color:white}
+h1,h2{color:#81eaff}
+.screen{max-width:1080px;margin:15px auto;padding:18px}
+.card{background:#0a2137;border:1px solid #2b7ca6;border-radius:18px;padding:22px;margin:14px 0}
+.center{text-align:center}
+.hide{display:none!important}
+#cover{height:220px;background:linear-gradient(100deg,#50200e,#122f64,#163b20);border-radius:16px;display:flex;justify-content:space-around;align-items:center;overflow:hidden}
+.coverdoor{width:24%;height:85%;border:8px ridge #b3d7e8;border-radius:55px 55px 5px 5px;box-shadow:0 0 35px currentColor;display:grid;place-items:center;font-size:23px;font-weight:bold;background:#081525}
+#view{display:block;width:100%;height:auto;background:#071427;border:2px solid #45c9ff;border-radius:14px}
+#hud{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:12px 0}
+#controls{display:flex;justify-content:center;gap:9px;flex-wrap:wrap}
+#controls button{min-width:65px;touch-action:none}
+#action{display:none;background:#0f9d6d;font-size:17px;width:100%;margin-top:10px}
+#notice{min-height:35px;color:#b5f4ff;text-align:center}
+.question{padding:18px;border:1px solid #397a9a;border-radius:14px;background:#10334d;margin:12px 0}
+.option{display:block;width:100%;text-align:left;margin:8px 0;background:#164363}
+.option.active{background:#15a9d4;color:#001824}
+#result{min-height:26px;font-weight:bold}
+#cert{background:#fff8df;color:#19344b;border:12px double #caa13b;text-align:center;padding:40px 20px}
+#cert h1{color:#aa7c12;font-size:38px}
+#cert h2{color:#19344b}
+#cert p{color:#19344b}
+small{color:#b6d4e5}
+@media(max-width:600px){.screen{padding:8px}#cover{height:150px}.coverdoor{font-size:15px;border-width:5px}#controls button{min-width:54px;padding:12px}}
+@media print{body{background:white}#home,#game,#exercise{display:none!important}#certificate{display:block!important}#cert{min-height:90vh}}
 </style>
 </head>
 <body>
 
-<section id="intro" class="panel">
-<div class="hero"><span>🚪</span><span>🚪</span><span>🚪</span></div>
+<section id="home" class="screen">
+<div class="card center">
+<div id="cover">
+<div class="coverdoor" style="color:#ff9e4b">START</div>
+<div class="coverdoor" style="color:#44cfff">PRO</div>
+<div class="coverdoor" style="color:#80ff70">EXPERT</div>
+</div>
 <h1>CHEM PASSWORD 3.0</h1>
 <h2>Үш есік – үш деңгей – бір жетістік</h2>
-<p>8-сынып химиясы. Тақырып: «Отынның жануы»</p>
-<p>START – 6 тапсырма | PRO – 2 тапсырма | EXPERT – 2 тапсырма</p>
-<p>Химиялық білімді қолданып, құпия кодтарды анықтаңыз. Әр деңгейдің есігін ашып, CHEM MASTER сертификатына қол жеткізіңіз!</p>
-<label for="student">Оқушының аты-жөні</label>
-<input id="student" placeholder="Аты-жөніңізді жазыңыз">
-<p><button id="enter">Кіру</button></p>
-<p id="introMessage"></p>
+<p>8-сынып | Химия | Отынның жануы</p>
+<p>Виртуалды музейде жүріп, химиялық тапсырмаларды орындаңыз. Құпия кодтарды өзіңіз анықтап, үш есікті ашыңыз!</p>
+<p>START — 6 тапсырма · PRO — 2 тапсырма · EXPERT — 2 тапсырма</p>
+<label>Оқушының аты-жөні</label>
+<input id="name" placeholder="Аты-жөніңіз">
+<p><button onclick="enterMuseum()">Кіру</button></p>
+<p id="homeError"></p>
 <small>Автор: Бекболат Роза Әбдіқұлқызы, педагог-сарапшы, химия пәні мұғалімі</small>
+</div>
 </section>
 
-<section id="museum">
-<h1 style="text-align:center">CHEM PASSWORD 3.0 — 3D музей</h1>
-<p id="status">Есіктерге жақындаңыз және тапсырмаларды орындаңыз.</p>
-<div id="scene">
-<div id="world">
-<div class="floor"></div>
-<div class="doors">
-<div class="door start" id="door0"><strong>START</strong><small>Бірінші есік</small></div>
-<div class="door pro locked" id="door1"><strong>PRO</strong><small>Екінші есік</small></div>
-<div class="door expert locked" id="door2"><strong>EXPERT</strong><small>Үшінші есік</small></div>
+<section id="game" class="screen hide">
+<h2 class="center">CHEM PASSWORD 3.0 — Виртуалды музей</h2>
+<div id="hud">
+<span id="levelLabel">Деңгей: START</span>
+<span id="score">Тапсырма: 0 / 10</span>
+<span id="distance">Есікке дейін: —</span>
 </div>
+<canvas id="view" width="960" height="540"></canvas>
+<p id="notice">Музей ішінде жүріңіз. Есікке жақындаңыз.</p>
+<button id="action" onclick="interact()">Есікті ашу</button>
+<div id="controls">
+<button data-key="left">↶ Бұрылу</button>
+<button data-key="forward">▲ Алға</button>
+<button data-key="backward">▼ Артқа</button>
+<button data-key="right">↷ Бұрылу</button>
 </div>
-</div>
-<div class="controls">
-<button onclick="move(-1,0)">◀</button>
-<button onclick="move(0,1)">▲</button>
-<button onclick="move(0,-1)">▼</button>
-<button onclick="move(1,0)">▶</button>
-</div>
-<p style="text-align:center">Пернетақта: W, A, S, D немесе бағыттауыштар. Есікті ашу үшін оның үстінен басыңыз.</p>
-<div class="panel">
-<h3>Саяхат картасы</h3>
+<p class="center"><small>W — алға, S — артқа, A — солға бұрылу, D — оңға бұрылу. Есікке жақындағанда E басыңыз.</small></p>
+<div class="card center">
 <p>🔶 START → 🔷 PRO → 🟢 EXPERT → 🏆 CHEM MASTER</p>
-<p id="progress">Орындалған тапсырма: 0 / 10</p>
 </div>
 </section>
 
-<section id="task" class="panel">
-<h2 id="taskTitle"></h2>
-<p id="taskInfo"></p>
-<div id="taskBody"></div>
-<p id="feedback"></p>
-<button id="checkBtn" onclick="checkAnswer()">Тексеру</button>
-<button onclick="backToMuseum()">Музейге қайту</button>
+<section id="exercise" class="screen hide">
+<div class="card">
+<h2 id="exerciseTitle"></h2>
+<p id="instruction"></p>
+<div id="questionArea"></div>
+<p id="result"></p>
+<button id="check" onclick="check()">Тексеру</button>
+<button onclick="returnMuseum()">Музейге қайту</button>
+</div>
 </section>
 
-<section id="certificate" class="panel">
+<section id="certificate" class="screen hide">
+<div id="cert">
 <h1>CHEM MASTER</h1>
 <h2>СЕРТИФИКАТ</h2>
 <p>Осы сертификат</p>
-<h2 id="certName"></h2>
-<p>«CHEM PASSWORD 3.0» интерактивті химиялық саяхатының үш деңгейінен сәтті өтіп, барлық 10 тапсырманы орындағаны үшін беріледі.</p>
-<h3>Үш есік – үш деңгей – бір жетістік</h3>
+<h2 id="certStudent"></h2>
+<p>CHEM PASSWORD 3.0 виртуалды химия музейінің START, PRO және EXPERT деңгейлерін сәтті аяқтап, 10 тапсырманы орындағаны үшін беріледі.</p>
+<h2>Үш есік – үш деңгей – бір жетістік</h2>
 <p>Пән мұғалімі: Бекболат Роза Әбдіқұлқызы</p>
-<p id="certDate"></p>
+<p id="date"></p>
 <button onclick="window.print()">Сертификатты басып шығару</button>
+</div>
 </section>
 
 <script>
 "use strict";
 
-const $=id=>document.getElementById(id);
+const el=id=>document.getElementById(id);
+const canvas=el("view");
+const ctx=canvas.getContext("2d");
+
 let student="";
-let unlocked=0;
 let stage=0;
-let questionIndex=0;
+let unlocked=0;
 let completed=0;
-let x=0,z=0;
-let collected=[[],[],[]];
+let index=0;
+let selected="";
+let puzzleDone=false;
+let currentDoor=-1;
+let active=false;
+let lastTime=0;
+
+const finished=[0,0,0];
+const passwords=["123456","78","910"];
 
 const levels=[
 {
 name:"START",
+color:"#ff9b45",
 questions:[
-{
-q:"Көмірқышқыл газының CO₂ молекуласында қанша көміртек атомы бар?",
-options:["1","2","3","4"],answer:"1"
-},
-{
-q:"CO₂ молекуласында қанша оттек атомы бар?",
-options:["1","2","3","4"],answer:"2"
-},
-{
-q:"Пропанның C₃H₈ молекуласында қанша көміртек атомы бар?",
-options:["1","2","3","4"],answer:"3"
-},
-{
-q:"Метанның CH₄ молекуласында қанша сутек атомы бар?",
-options:["2","3","4","5"],answer:"4"
-},
-{
-q:"C₃H₈ + O₂ → CO₂ + H₂O теңдеуін теңестіргенде O₂ алдындағы коэффициент қанша?",
-options:["3","4","5","6"],answer:"5"
-},
-{
-q:"2C₂H₆ + 7O₂ → 4CO₂ + H₂O теңдеуіндегі H₂O коэффициенті қанша?",
-options:["4","5","6","7"],answer:"6"
-}
-],
-password:"123456"
+["CO₂ молекуласында қанша көміртек атомы бар?",["1","2","3","4"],"1"],
+["CO₂ молекуласында қанша оттек атомы бар?",["1","2","3","4"],"2"],
+["C₃H₈ молекуласында қанша көміртек атомы бар?",["1","2","3","4"],"3"],
+["CH₄ молекуласында қанша сутек атомы бар?",["2","3","4","5"],"4"],
+["C₃H₈ + O₂ → CO₂ + H₂O теңдеуін теңестіргенде O₂ коэффициенті қанша?",["3","4","5","6"],"5"],
+["2C₂H₆ + 7O₂ → 4CO₂ + H₂O теңдеуінде H₂O коэффициенті қанша?",["4","5","6","7"],"6"]
+]
 },
 {
 name:"PRO",
+color:"#3ed1ff",
 questions:[
-{
-q:"Этанның толық жану теңдеуінде 2C₂H₆ алынса, O₂ алдындағы коэффициент қанша?",
-options:["5","6","7","8"],answer:"7"
-},
-{
-q:"Пропанның толық жану теңдеуінде 2C₃H₈ алынса, түзілген H₂O коэффициенті қанша?",
-options:["6","7","8","9"],answer:"8"
-}
-],
-password:"78"
+["2C₂H₆ толық жанғанда O₂ алдындағы коэффициент қанша?",["5","6","7","8"],"7"],
+["2C₃H₈ толық жанғанда түзілетін H₂O коэффициенті қанша?",["6","7","8","9"],"8"]
+]
 },
 {
 name:"EXPERT",
+color:"#75f96d",
 questions:[
-{
-q:"132 г пропан (C₃H₈) толық жанғанда қанша моль CO₂ түзіледі? M(C₃H₈)=44 г/моль.",
-options:["3","6","9","12"],answer:"9"
-},
-{
-q:"80 г метан (CH₄) толық жанғанда қанша моль H₂O түзіледі? M(CH₄)=16 г/моль.",
-options:["5","8","10","12"],answer:"10"
-}
-],
-password:"910"
+["132 г пропан толық жанғанда қанша моль CO₂ түзіледі? M(C₃H₈)=44 г/моль.",["3","6","9","12"],"9"],
+["80 г метан толық жанғанда қанша моль H₂O түзіледі? M(CH₄)=16 г/моль.",["5","8","10","12"],"10"]
+]
 }
 ];
 
-$("enter").onclick=()=>{
-const name=$("student").value.trim();
-if(!name){
-$("introMessage").textContent="Алдымен аты-жөніңізді жазыңыз.";
+// Виртуалды музей картасы.
+// # — қабырға, бос орын — жүретін жер.
+// 1, 2, 3 — үш есік.
+const map=[
+"#################",
+"#               #",
+"#   1   2   3   #",
+"#               #",
+"#               #",
+"#               #",
+"#               #",
+"#               #",
+"#               #",
+"#               #",
+"#################"
+];
+
+const doors=[
+{x:4.5,y:2.5,id:0},
+{x:8.5,y:2.5,id:1},
+{x:12.5,y:2.5,id:2}
+];
+
+const player={x:8.5,y:8.2,angle:-Math.PI/2};
+const keys={};
+const FOV=Math.PI/2.8;
+const RAYS=320;
+const MAX_DEPTH=22;
+
+function enterMuseum(){
+student=el("name").value.trim();
+if(!student){
+el("homeError").textContent="Алдымен аты-жөніңізді енгізіңіз.";
 return;
 }
-student=name;
-$("intro").style.display="none";
-$("museum").style.display="block";
-$("status").textContent=student+", START есігіне жақындап, саяхатты бастаңыз!";
-};
+el("home").classList.add("hide");
+el("game").classList.remove("hide");
+active=true;
+lastTime=performance.now();
+requestAnimationFrame(loop);
+}
 
-function move(dx,dz){
-x=Math.max(-3,Math.min(3,x+dx));
-z=Math.max(-3,Math.min(4,z+dz));
-$("world").style.transform=
-"translateX("+(-x*35)+"px) scale("+(1+z*.07)+")";
-$("status").textContent="Қозғалыс орындалды. Есікті таңдап, тапсырманы ашыңыз.";
+function isWall(x,y){
+const ix=Math.floor(x),iy=Math.floor(y);
+if(iy<0||iy>=map.length||ix<0||ix>=map[0].length)return true;
+return map[iy][ix]==="#";
+}
+
+function canMove(x,y){
+const r=.22;
+return !isWall(x-r,y-r)&&!isWall(x+r,y-r)&&
+!isWall(x-r,y+r)&&!isWall(x+r,y+r);
+}
+
+function move(speed,dt){
+const nx=player.x+Math.cos(player.angle)*speed*dt;
+const ny=player.y+Math.sin(player.angle)*speed*dt;
+if(canMove(nx,player.y))player.x=nx;
+if(canMove(player.x,ny))player.y=ny;
+}
+
+function update(dt){
+const speed=2.4;
+const turn=1.9;
+if(keys.forward)move(speed,dt);
+if(keys.backward)move(-speed,dt);
+if(keys.left)player.angle-=turn*dt;
+if(keys.right)player.angle+=turn*dt;
+}
+
+function cast(angle){
+const dx=Math.cos(angle);
+const dy=Math.sin(angle);
+let distance=0;
+while(distance<MAX_DEPTH){
+distance+=.035;
+const x=player.x+dx*distance;
+const y=player.y+dy*distance;
+if(isWall(x,y)){
+return {distance,x,y};
+}
+}
+return {distance:MAX_DEPTH,x:0,y:0};
+}
+
+function drawBackground(){
+const w=canvas.width,h=canvas.height;
+const sky=ctx.createLinearGradient(0,0,0,h/2);
+sky.addColorStop(0,"#020817");
+sky.addColorStop(1,"#17395e");
+ctx.fillStyle=sky;
+ctx.fillRect(0,0,w,h/2);
+
+const floor=ctx.createLinearGradient(0,h/2,0,h);
+floor.addColorStop(0,"#1b3144");
+floor.addColorStop(1,"#02060c");
+ctx.fillStyle=floor;
+ctx.fillRect(0,h/2,w,h/2);
+
+ctx.strokeStyle="rgba(50,190,240,.23)";
+ctx.lineWidth=2;
+for(let i=1;i<12;i++){
+const y=h/2+(h/2)*(1-1/(1+i*.4));
+ctx.beginPath();
+ctx.moveTo(0,y);
+ctx.lineTo(w,y);
+ctx.stroke();
+}
+for(let i=-10;i<=10;i++){
+ctx.beginPath();
+ctx.moveTo(w/2,h/2);
+ctx.lineTo(w/2+i*160,h);
+ctx.stroke();
+}
+}
+
+function renderWalls(){
+const w=canvas.width,h=canvas.height;
+const strip=w/RAYS;
+for(let i=0;i<RAYS;i++){
+const angle=player.angle-FOV/2+FOV*i/RAYS;
+const hit=cast(angle);
+const corrected=hit.distance*Math.cos(angle-player.angle);
+const height=Math.min(h*3,h/(corrected*.75));
+const brightness=Math.max(20,Math.floor(170/(1+corrected*.14)));
+ctx.fillStyle=`rgb(${Math.floor(brightness*.35)},${Math.floor(brightness*.7)},${brightness})`;
+ctx.fillRect(i*strip,h/2-height/2,strip+1,height);
+ctx.fillStyle="rgba(0,0,0,.18)";
+ctx.fillRect(i*strip,h/2-height/2,strip+1,4);
+}
+}
+
+function drawDoors(){
+const w=canvas.width,h=canvas.height;
+const visible=[];
+doors.forEach(d=>{
+const dx=d.x-player.x,dy=d.y-player.y;
+const dist=Math.hypot(dx,dy);
+let angle=Math.atan2(dy,dx)-player.angle;
+while(angle>Math.PI)angle-=2*Math.PI;
+while(angle<-Math.PI)angle+=2*Math.PI;
+if(Math.abs(angle)>FOV*.65)return;
+const wall=cast(Math.atan2(dy,dx)).distance;
+if(wall<dist-.45)return;
+visible.push({...d,dist,angle});
+});
+visible.sort((a,b)=>b.dist-a.dist);
+visible.forEach(d=>{
+const corrected=d.dist*Math.cos(d.angle);
+const size=Math.min(900,h/(corrected*.65));
+const x=w/2+Math.tan(d.angle)*w/(2*Math.tan(FOV/2));
+const top=h/2-size*.52;
+const width=size*.55;
+const level=levels[d.id];
+const open=d.id<=unlocked;
+ctx.save();
+ctx.shadowColor=level.color;
+ctx.shadowBlur=24;
+ctx.fillStyle="#07111f";
+ctx.fillRect(x-width/2,top,width,size);
+ctx.strokeStyle=level.color;
+ctx.lineWidth=Math.max(3,Math.min(14,size*.055));
+ctx.strokeRect(x-width/2,top,width,size);
+ctx.shadowBlur=0;
+ctx.fillStyle=level.color;
+ctx.textAlign="center";
+ctx.font=`bold ${Math.max(12,Math.min(34,size*.17))}px Arial`;
+ctx.fillText(level.name,x,top+size*.48);
+ctx.font=`${Math.max(10,Math.min(19,size*.1))}px Arial`;
+ctx.fillText(open?"АШЫҚ":"ҚҰЛЫПТАУЛЫ",x,top+size*.61);
+ctx.restore();
+});
+}
+
+function drawMinimap(){
+const scale=10,ox=14,oy=14;
+ctx.save();
+ctx.fillStyle="rgba(1,12,25,.8)";
+ctx.fillRect(ox-6,oy-6,190,135);
+for(let y=0;y<map.length;y++){
+for(let x=0;x<map[y].length;x++){
+if(map[y][x]==="#"){
+ctx.fillStyle="#30627f";
+ctx.fillRect(ox+x*scale,oy+y*scale,scale-1,scale-1);
+}
+}
+}
+doors.forEach(d=>{
+ctx.fillStyle=levels[d.id].color;
+ctx.fillRect(ox+d.x*scale-4,oy+d.y*scale-4,8,8);
+});
+ctx.fillStyle="#fff";
+ctx.beginPath();
+ctx.arc(ox+player.x*scale,oy+player.y*scale,4,0,Math.PI*2);
+ctx.fill();
+ctx.strokeStyle="#fff";
+ctx.beginPath();
+ctx.moveTo(ox+player.x*scale,oy+player.y*scale);
+ctx.lineTo(ox+(player.x+Math.cos(player.angle)*.8)*scale,oy+(player.y+Math.sin(player.angle)*.8)*scale);
+ctx.stroke();
+ctx.restore();
+}
+
+function nearestDoor(){
+let best=null;
+for(const d of doors){
+const dist=Math.hypot(player.x-d.x,player.y-d.y);
+const angle=Math.atan2(d.y-player.y,d.x-player.x);
+let diff=angle-player.angle;
+while(diff>Math.PI)diff-=Math.PI*2;
+while(diff<-Math.PI)diff+=Math.PI*2;
+if(dist<1.9&&Math.abs(diff)<1.1){
+if(!best||dist<best.dist)best={...d,dist};
+}
+}
+return best;
+}
+
+function updateAction(){
+const door=nearestDoor();
+currentDoor=door?door.id:-1;
+if(!door){
+el("action").style.display="none";
+el("distance").textContent="Есікке жақындаңыз";
+return;
+}
+el("distance").textContent="Есік: "+levels[door.id].name;
+el("action").style.display="block";
+el("action").textContent=door.id>unlocked?"Есік құлыптаулы":"Есікті ашу — "+levels[door.id].name;
+el("action").disabled=door.id>unlocked;
+}
+
+function render(){
+drawBackground();
+renderWalls();
+drawDoors();
+drawMinimap();
+}
+
+function loop(time){
+if(!active)return;
+const dt=Math.min(.05,(time-lastTime)/1000||0);
+lastTime=time;
+update(dt);
+render();
+updateAction();
+requestAnimationFrame(loop);
 }
 
 document.addEventListener("keydown",e=>{
-if($("museum").style.display!=="block")return;
-if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(e.key))e.preventDefault();
 const k=e.key.toLowerCase();
-if(k==="w"||k==="arrowup")move(0,1);
-if(k==="s"||k==="arrowdown")move(0,-1);
-if(k==="a"||k==="arrowleft")move(-1,0);
-if(k==="d"||k==="arrowright")move(1,0);
+if(["arrowup","arrowdown","arrowleft","arrowright"," "].includes(k))e.preventDefault();
+if(k==="w"||k==="arrowup")keys.forward=true;
+if(k==="s"||k==="arrowdown")keys.backward=true;
+if(k==="a"||k==="arrowleft")keys.left=true;
+if(k==="d"||k==="arrowright")keys.right=true;
+if(k==="e"&&active)interact();
+});
+document.addEventListener("keyup",e=>{
+const k=e.key.toLowerCase();
+if(k==="w"||k==="arrowup")keys.forward=false;
+if(k==="s"||k==="arrowdown")keys.backward=false;
+if(k==="a"||k==="arrowleft")keys.left=false;
+if(k==="d"||k==="arrowright")keys.right=false;
+});
+document.querySelectorAll("[data-key]").forEach(b=>{
+const key=b.dataset.key;
+b.addEventListener("pointerdown",e=>{
+e.preventDefault();keys[key]=true;
+b.setPointerCapture(e.pointerId);
+});
+const stop=()=>keys[key]=false;
+b.addEventListener("pointerup",stop);
+b.addEventListener("pointercancel",stop);
+b.addEventListener("lostpointercapture",stop);
 });
 
-for(let i=0;i<3;i++){
-$("door"+i).onclick=()=>openDoor(i);
-}
-
-function openDoor(i){
-if(i>unlocked){
-$("status").textContent="Бұл есік әзірге құлыптаулы. Алдыңғы деңгейді аяқтаңыз.";
+function interact(){
+if(currentDoor<0)return;
+if(currentDoor>unlocked){
+el("notice").textContent="Алдыңғы деңгейдің құпия кодын табыңыз.";
 return;
 }
-stage=i;
-questionIndex=0;
-$("museum").style.display="none";
-$("task").style.display="block";
-if(i===0 && collected[0].length===0){
-renderStartPuzzle();
-}else if(collected[i].length===levels[i].questions.length){
-renderPassword();
-}else{
-questionIndex=collected[i].length;
-renderQuestion();
-}
+stage=currentDoor;
+index=finished[stage];
+active=false;
+Object.keys(keys).forEach(k=>keys[k]=false);
+el("game").classList.add("hide");
+el("exercise").classList.remove("hide");
+if(stage===0&&!puzzleDone)showPuzzle();
+else if(index>=levels[stage].questions.length)showPassword();
+else showQuestion();
 }
 
-function renderStartPuzzle(){
-$("taskTitle").textContent="START — құпия элементтер";
-$("taskInfo").textContent="Периодтық жүйедегі элемент таңбаларын біріктіріп, бірінші есіктің кілтін табыңыз.";
-$("taskBody").innerHTML=`
+function showPuzzle(){
+el("exerciseTitle").textContent="START — химиялық жұмбақ";
+el("instruction").textContent="Периодтық жүйедегі екі элементтің таңбасын біріктіріңіз.";
+el("questionArea").innerHTML=`
 <div class="question">
-<h3>Химиялық жұмбақ</h3>
-<p>Атомдық нөмірі 16 болатын элементтің таңбасын табыңыз.</p>
-<p>Атомдық нөмірі 92 болатын элементтің таңбасын табыңыз.</p>
-<p>Екі таңбаны ретімен қосыңыз.</p>
-<input id="puzzleAnswer" placeholder="Құпия сөзді жазыңыз">
+<p>Бірінші элементтің атомдық нөмірі — 16.</p>
+<p>Екінші элементтің атомдық нөмірі — 92.</p>
+<p>Олардың таңбаларын ретімен біріктіріп, құпия сөзді табыңыз.</p>
+<input id="puzzle" placeholder="Құпия сөз">
 </div>`;
-$("feedback").textContent="";
-$("checkBtn").style.display="inline-block";
-$("checkBtn").onclick=()=>{
-const v=$("puzzleAnswer").value.trim().toUpperCase();
-if(v==="SU"){
-$("feedback").textContent="Дұрыс! START тапсырмалары ашылды.";
-$("checkBtn").onclick=checkAnswer;
-renderQuestion();
+el("result").textContent="";
+el("check").onclick=()=>{
+if(el("puzzle").value.trim().toUpperCase()==="SU"){
+puzzleDone=true;
+showQuestion();
 }else{
-$("feedback").textContent="Қайта ойланыңыз. Периодтық кестені пайдаланыңыз.";
+el("result").textContent="Дұрыс емес. Периодтық кестені қарап көріңіз.";
 }
 };
 }
 
-function renderQuestion(){
+function showQuestion(){
 const level=levels[stage];
-const item=level.questions[questionIndex];
-$("taskTitle").textContent=level.name+" — тапсырма "+(questionIndex+1);
-$("taskInfo").textContent="Дұрыс жауапты таңдап, «Тексеру» батырмасын басыңыз.";
-$("feedback").textContent="";
-$("checkBtn").style.display="inline-block";
-$("checkBtn").onclick=checkAnswer;
-$("taskBody").innerHTML="";
-const wrap=document.createElement("div");
-wrap.className="question";
-const h=document.createElement("h3");
-h.textContent=item.q;
-wrap.appendChild(h);
-const opts=document.createElement("div");
-opts.className="options";
-item.options.forEach(value=>{
+const q=level.questions[index];
+selected="";
+el("exerciseTitle").textContent=level.name+" — тапсырма "+(index+1);
+el("instruction").textContent="Дұрыс жауапты таңдаңыз. Әр жауапты есте сақтаңыз: соңында олар құпия код құрайды.";
+el("result").textContent="";
+el("questionArea").innerHTML="";
+const box=document.createElement("div");
+box.className="question";
+const title=document.createElement("h3");
+title.textContent=q[0];
+box.appendChild(title);
+q[1].forEach(value=>{
 const b=document.createElement("button");
+b.className="option";
 b.textContent=value;
 b.onclick=()=>{
-opts.querySelectorAll("button").forEach(el=>el.classList.remove("selected"));
-b.classList.add("selected");
-b.dataset.selected="true";
+selected=value;
+box.querySelectorAll(".option").forEach(x=>x.classList.remove("active"));
+b.classList.add("active");
 };
-opts.appendChild(b);
+box.appendChild(b);
 });
-wrap.appendChild(opts);
-$("taskBody").appendChild(wrap);
+el("questionArea").appendChild(box);
+el("check").onclick=check;
 }
 
-function checkAnswer(){
-const selected=document.querySelector(".options button.selected");
+function check(){
 if(!selected){
-$("feedback").textContent="Алдымен жауапты таңдаңыз.";
+el("result").textContent="Жауапты таңдаңыз.";
 return;
 }
-const item=levels[stage].questions[questionIndex];
-if(selected.textContent.trim()!==item.answer){
-$("feedback").textContent="Жауап дұрыс емес. Қайта есептеп көріңіз.";
-$("feedback").className="bad";
+const correct=levels[stage].questions[index][2];
+if(selected!==correct){
+el("result").textContent="Жауап қате. Қайта есептеп көріңіз.";
 return;
 }
-$("feedback").className="good";
-$("feedback").textContent="Дұрыс жауап! Келесі тапсырмаға өтіңіз.";
-collected[stage].push(item.answer);
+finished[stage]++;
 completed++;
-$("progress").textContent="Орындалған тапсырма: "+completed+" / 10";
-questionIndex++;
-if(questionIndex<levels[stage].questions.length){
-renderQuestion();
-}else{
-renderPassword();
-}
+index++;
+el("score").textContent="Тапсырма: "+completed+" / 10";
+if(index<levels[stage].questions.length)showQuestion();
+else showPassword();
 }
 
-function renderPassword(){
-const level=levels[stage];
-$("taskTitle").textContent=level.name+" — құпия код";
-$("taskInfo").textContent="Тапсырмалардағы дұрыс жауаптарды ретімен біріктіріп, есіктің құпия кодын жазыңыз.";
-$("taskBody").innerHTML=`
+function showPassword(){
+el("exerciseTitle").textContent=levels[stage].name+" — құпия код";
+el("instruction").textContent="Осы деңгейдегі дұрыс жауаптарды ретімен біріктіріп, кодты енгізіңіз.";
+el("questionArea").innerHTML=`
 <div class="question">
-<p>Барлық тапсырма орындалды. Жауаптардан құралған құпия кодты енгізіңіз.</p>
-<input id="passwordInput" placeholder="Құпия код">
+<input id="password" placeholder="Құпия кодты енгізіңіз">
 </div>`;
-$("feedback").textContent="";
-$("checkBtn").style.display="inline-block";
-$("checkBtn").onclick=verifyPassword;
+el("result").textContent="";
+el("check").onclick=verifyPassword;
 }
 
 function verifyPassword(){
-const value=$("passwordInput").value.trim();
-if(value!==levels[stage].password){
-$("feedback").className="bad";
-$("feedback").textContent="Құпия код сәйкес келмеді. Жауаптардың ретін тексеріңіз.";
+const code=el("password").value.trim();
+if(code!==passwords[stage]){
+el("result").textContent="Код дұрыс емес. Тапсырмалардың жауаптарын ретімен тексеріңіз.";
 return;
 }
-$("feedback").className="good";
 if(stage===2){
-$("task").style.display="none";
-$("certificate").style.display="block";
-$("certName").textContent=student;
-$("certDate").textContent=new Date().toLocaleDateString("kk-KZ");
-}else{
-unlocked=Math.max(unlocked,stage+1);
-$("door"+unlocked).classList.remove("locked");
-$("task").style.display="none";
-$("museum").style.display="block";
-$("status").textContent="Құттықтаймыз! "+levels[unlocked].name+" есігі ашылды.";
+el("exercise").classList.add("hide");
+el("certificate").classList.remove("hide");
+el("certStudent").textContent=student;
+el("date").textContent=new Date().toLocaleDateString("kk-KZ");
+return;
 }
+unlocked=Math.max(unlocked,stage+1);
+el("levelLabel").textContent="Ашылған деңгей: "+levels[unlocked].name;
+returnMuseum();
+el("notice").textContent="Құттықтаймыз! "+levels[unlocked].name+" есігі ашылды. Музейде сол есікті тауып, жақындаңыз.";
 }
 
-function backToMuseum(){
-$("task").style.display="none";
-$("museum").style.display="block";
+function returnMuseum(){
+el("exercise").classList.add("hide");
+el("game").classList.remove("hide");
+active=true;
+lastTime=performance.now();
+requestAnimationFrame(loop);
 }
 </script>
 </body>
 </html>
+
